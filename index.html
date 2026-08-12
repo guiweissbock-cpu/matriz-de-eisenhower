@@ -684,7 +684,7 @@
     downloadBtn.textContent = 'Gerando PDF...';
     try {
       const target = document.getElementById('matrix-export');
-      const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
       const imgData = canvas.toDataURL('image/png');
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
