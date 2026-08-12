@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matriz de Eisenhower na Prática · PipeLovers</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#0B0E45;
+    --navy-deep:#060830;
+    --blue:#2F5EF5;
+    --blue-soft:#DCE4FE;
+    --bg:#F2F1EE;
+    --white:#FFFFFF;
+    --gray-text:#5B5F7A;
+    --border:#E2E2E8;
+    --red:#E64545;
+    --green:#2FB56B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--navy);
+  }
+  h1,h2,h3,.display{
+    font-family:'Sora',sans-serif;
+  }
+  a{color:inherit;}
+
+  /* HEADER */
+  header{
+    position:relative;
+    background:var(--navy);
+    color:var(--white);
+    padding:56px 24px 64px;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    top:-40%;
+    right:-10%;
+    width:60%;
+    height:220%;
+    background:var(--blue);
+    opacity:.18;
+    transform:rotate(24deg);
+  }
+  .header-inner{
+    position:relative;
+    max-width:960px;
+    margin:0 auto;
+    z-index:2;
+  }
+  .brand{
+    margin-bottom:36px;
+  }
+  .brand svg{
+    width:190px;
+    height:auto;
+    display:block;
+  }
+  .tag{
+    display:inline-block;
+    background:var(--blue);
+    color:var(--white);
+    font-size:.72rem;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:6px 12px;
+    border-radius:999px;
+    margin-bottom:16px;
+  }
+  header h1{
+    font-size:2.15rem;
+    font-weight:800;
+    line-height:1.18;
+    margin:0 0 14px;
+    max-width:640px;
+  }
+  header p.lead{
+    font-family:'Inter',sans-serif;
+    font-size:1rem;
+    line-height:1.6;
+    color:#C7CCF0;
+    max-width:560px;
+    margin:0;
+  }
+
+  main{
+    max-width:960px;
+    margin:0 auto;
+    padding:40px 24px 80px;
+  }
+
+  /* STEP CARD - ADD TASK */
+  .card{
+    background:var(--white);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:28px 28px 30px;
+  }
+  .step-label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .step-number{
+    width:26px;height:26px;
+    border-radius:50%;
+    background:var(--navy);
+    color:var(--white);
+    font-family:'Sora',sans-serif;
+    font-weight:700;
+    font-size:.8rem;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .card h2{
+    font-size:1.1rem;
+    margin:0;
+    font-weight:700;
+  }
+  .card .sub{
+    color:var(--gray-text);
+    font-size:.92rem;
+    margin:6px 0 20px 36px;
+    line-height:1.5;
+  }
+
+  .add-row{
+    display:flex;
+    gap:10px;
+    margin-left:36px;
+  }
+  #task-input{
+    flex:1;
+    padding:13px 16px;
+    border:1.5px solid var(--border);
+    border-radius:12px;
+    font-family:'Inter',sans-serif;
+    font-size:.95rem;
+    background:var(--bg);
+    color:var(--navy);
+    outline:none;
+    transition:border-color .15s;
+  }
+  #task-input:focus{border-color:var(--blue);}
+  #add-btn{
+    background:var(--blue);
+    color:var(--white);
+    border:none;
+    border-radius:12px;
+    padding:0 22px;
+    font-family:'Sora',sans-serif;
+    font-weight:700;
+    font-size:.9rem;
+    cursor:pointer;
+    transition:background .15s;
+    white-space:nowrap;
+  }
+  #add-btn:hover{background:#2350DE;}
+  #add-btn:disabled{background:#B9C4EE;cursor:not-allowed;}
+
+  /* PENDING / TRIAGE ZONE */
+  #pending-zone{margin-left:36px;margin-top:18px;}
+  .pending-empty{
+    color:var(--gray-text);
+    font-size:.88rem;
+    font-style:italic;
+  }
+  .pending-item{
+    background:var(--bg);
+    border:1.5px dashed var(--border);
+    border-radius:14px;
+    padding:14px 16px;
+    margin-bottom:12px;
+  }
+  .pending-item p{
+    margin:0 0 12px;
+    font-weight:600;
+    font-size:.95rem;
+  }
+  .choice-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .choice-group{
+    display:flex;
+    border:1.5px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .choice-btn{
+    background:var(--white);
+    border:none;
+    padding:8px 14px;
+    font-family:'Inter',sans-serif;
+    font-size:.82rem;
+    font-weight:600;
+    cursor:pointer;
+    color:var(--navy);
+    transition:background .15s,color .15s;
+  }
+  .choice-btn + .choice-btn{border-left:1.5px solid var(--border);}
+  .choice-btn.urgent-yes.active{background:var(--red);color:var(--white);}
+  .choice-btn.urgent-no.active{background:#F1D9D9;color:var(--red);}
+  .choice-btn.imp-yes.active{background:var(--green);color:var(--white);}
+  .choice-btn.imp-no.active{background:#D6EEE0;color:var(--green);}
+  .remove-pending{
+    margin-left:auto;
+    background:none;
+    border:none;
+    color:var(--gray-text);
+    cursor:pointer;
+    font-size:.8rem;
+    text-decoration:underline;
+  }
+
+  /* MATRIX */
+  #matrix-section{margin-top:34px;}
+  #matrix-export{
+    background:var(--white);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:30px 30px 26px;
+  }
+  .matrix-title{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .matrix-title h2{
+    font-size:1.15rem;
+    margin:0;
+    font-weight:700;
+  }
+  .matrix-title span{
+    font-size:.82rem;
+    color:var(--gray-text);
+  }
+
+  .axis-wrap{
+    display:grid;
+    grid-template-columns:34px 1fr;
+    gap:0;
+  }
+  .y-axis{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-around;
+    padding:26px 0;
+  }
+  .y-axis span{
+    writing-mode:vertical-rl;
+    transform:rotate(180deg);
+    font-family:'Sora',sans-serif;
+    font-weight:700;
+    font-size:.72rem;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--navy);
+  }
+  .matrix-col{width:100%;}
+  .x-axis{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    text-align:center;
+    padding:0 0 10px;
+    gap:14px;
+  }
+  .x-axis span{
+    font-family:'Sora',sans-serif;
+    font-weight:700;
+    font-size:.72rem;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--navy);
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
+    gap:14px;
+  }
+  .quad{
+    border-radius:16px;
+    padding:16px 16px 12px;
+    min-height:150px;
+    display:flex;
+    flex-direction:column;
+  }
+  .quad-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .quad-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .quad h3{
+    font-size:.95rem;
+    margin:0;
+    font-weight:700;
+  }
+  .quad .quad-sub{
+    font-size:.74rem;
+    color:var(--gray-text);
+    margin:0 0 12px;
+  }
+  .quad-tasks{
+    list-style:none;
+    margin:0;padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    flex:1;
+  }
+  .quad-tasks .empty{
+    font-size:.8rem;
+    color:var(--gray-text);
+    font-style:italic;
+  }
+  .task-chip{
+    background:var(--white);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:.85rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    box-shadow:0 1px 2px rgba(11,14,69,.06);
+  }
+  .task-chip button{
+    background:none;
+    border:none;
+    color:var(--gray-text);
+    cursor:pointer;
+    font-size:.95rem;
+    line-height:1;
+    padding:0;
+    flex-shrink:0;
+  }
+  .task-chip button:hover{color:var(--red);}
+
+  #q-do{background:#FBE8E8;}
+  #q-schedule{background:var(--blue-soft);}
+  #q-delegate{background:#FDF3DC;}
+  #q-eliminate{background:#EFEFEF;}
+  #q-do .quad-dot{background:var(--red);}
+  #q-schedule .quad-dot{background:var(--blue);}
+  #q-delegate .quad-dot{background:#D9A017;}
+  #q-eliminate .quad-dot{background:#8A8A8A;}
+
+  /* ACTIONS */
+  .actions{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    margin-top:28px;
+    flex-wrap:wrap;
+  }
+  #download-btn{
+    background:var(--blue);
+    color:var(--white);
+    border:none;
+    border-radius:12px;
+    padding:15px 28px;
+    font-family:'Sora',sans-serif;
+    font-weight:700;
+    font-size:.95rem;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    transition:background .15s,transform .1s;
+  }
+  #download-btn:hover{background:#2350DE;}
+  #download-btn:active{transform:scale(.98);}
+  #download-btn:disabled{background:#B9C4EE;cursor:wait;}
+  #reset-btn{
+    background:none;
+    border:1.5px solid var(--border);
+    color:var(--gray-text);
+    border-radius:12px;
+    padding:15px 22px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:.9rem;
+    cursor:pointer;
+  }
+  #reset-btn:hover{border-color:var(--navy);color:var(--navy);}
+
+  footer{
+    text-align:center;
+    padding:30px 24px 50px;
+    color:var(--gray-text);
+    font-size:.78rem;
+  }
+
+  @media (max-width:640px){
+    header h1{font-size:1.6rem;}
+    .add-row{flex-direction:column;margin-left:0;}
+    .card .sub{margin-left:0;}
+    #pending-zone{margin-left:0;}
+    .grid{grid-template-columns:1fr;grid-template-rows:auto;}
+    .x-axis{display:none;}
+    .axis-wrap{grid-template-columns:1fr;}
+    .y-axis{display:none;}
+    .quad{min-height:auto;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <svg viewBox="0 0 2781 702" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PipeLovers">
+        <path d="M63.62 600.5C63.62 606.12 59.53 608.93 51.36 608.93H12.26C4.08 608.93 0 606.12 0 600.5V100.76C0 95.14 4.09 92.33 12.26 92.33H115.73C125.95 92.33 135.4 94.37 144.09 98.46C152.78 102.55 160.19 108.42 166.32 116.09C172.96 123.24 178.07 131.67 181.65 141.38C185.74 151.09 187.78 161.56 187.78 172.81V291.61C187.78 318.69 181.14 340.66 167.85 357.53C154.56 373.88 136.17 382.06 112.66 382.06H63.61V600.51L63.62 600.5ZM63.62 319.21H95.81C103.47 319.21 110.12 315.38 115.74 307.71C121.36 299.53 124.17 289.83 124.17 278.58V196.57C124.17 185.33 121.36 175.88 115.74 168.21C110.12 160.55 103.48 156.71 95.81 156.71H63.62V319.2V319.21Z" fill="white"/>
+        <path d="M262.41 92.33C270.59 92.33 274.67 95.14 274.67 100.76V600.5C274.67 606.12 271.09 608.93 263.94 608.93H222.55C219.49 608.93 216.67 608.16 214.12 606.63C212.08 605.1 211.06 603.05 211.06 600.5V100.76C211.06 95.14 215.15 92.33 223.32 92.33H262.41Z" fill="white"/>
+        <path d="M377.99 600.5C377.99 606.12 373.9 608.93 365.73 608.93H326.64C318.46 608.93 314.38 606.12 314.38 600.5V100.76C314.38 95.14 318.47 92.33 326.64 92.33H430.11C440.33 92.33 449.78 94.37 458.47 98.46C467.16 102.55 474.57 108.42 480.7 116.09C487.34 123.24 492.45 131.67 496.03 141.38C500.12 151.09 502.16 161.56 502.16 172.81V291.61C502.16 318.69 495.52 340.66 482.23 357.53C468.95 373.88 450.55 382.06 427.05 382.06H378V600.51L377.99 600.5ZM377.99 319.21H410.18C417.84 319.21 424.49 315.38 430.11 307.71C435.73 299.53 438.54 289.83 438.54 278.58V196.57C438.54 185.33 435.73 175.88 430.11 168.21C424.49 160.55 417.85 156.71 410.18 156.71H377.99V319.2V319.21Z" fill="white"/>
+        <path d="M710.15 143.69C710.15 148.8 708.87 152.38 706.32 154.42C703.76 155.95 700.7 156.72 697.12 156.72H589.81V319.21H664.92C673.1 319.21 677.19 321.76 677.19 326.87V374.39C677.19 379.5 673.1 382.05 664.92 382.05H589.81V545.31H697.12C700.7 545.31 703.76 546.08 706.32 547.61C708.88 549.14 710.15 551.19 710.15 553.74V600.49C710.15 603.04 708.87 605.09 706.32 606.62C703.76 608.15 700.7 608.92 697.12 608.92H538.46C530.28 608.92 526.2 606.11 526.2 600.49V100.76C526.2 95.14 530.29 92.33 538.46 92.33H697.12C700.7 92.33 703.76 93.35 706.32 95.4C708.88 96.93 710.15 99.74 710.15 103.83V143.69Z" fill="white"/>
+        <path d="M1004.01 545.32C1012.18 545.32 1016.27 548.13 1016.27 553.75V600.5C1016.27 606.12 1012.18 608.93 1004.01 608.93H749.54C741.36 608.93 737.27 606.12 737.27 600.5V100.76C737.27 95.14 741.36 92.33 749.54 92.33H788.63C796.81 92.33 800.9 95.14 800.9 100.76V545.31H1004.01V545.32ZM942.69 92.33C963.13 92.33 980.5 100.25 994.81 116.09C1009.12 131.93 1016.27 151.6 1016.27 175.11V418.85C1016.27 430.09 1014.23 440.82 1010.14 451.04C1006.56 460.75 1001.45 469.43 994.81 477.1C988.17 484.76 980.24 490.9 971.05 495.5C962.36 499.59 952.91 501.63 942.69 501.63H902.83C892.61 501.63 882.9 499.59 873.71 495.5C865.02 490.9 857.1 484.77 849.95 477.1C843.3 469.43 837.94 460.75 833.85 451.04C830.27 440.82 828.48 430.09 828.48 418.85V175.11C828.48 162.85 830.53 151.86 834.61 142.15C838.7 131.93 844.06 123.24 850.71 116.09C857.86 108.43 865.78 102.55 874.47 98.46C883.67 94.37 893.12 92.33 902.83 92.33H942.69ZM952.66 196.57C952.66 185.33 949.85 175.88 944.23 168.21C938.61 160.55 931.97 156.71 924.3 156.71H921.23C913.05 156.71 906.16 160.54 900.53 168.21C895.42 175.87 892.87 185.33 892.87 196.57V397.39C892.87 409.14 895.43 418.85 900.53 426.51C906.15 433.66 913.05 437.24 921.23 437.24H924.3C931.96 437.24 938.61 433.66 944.23 426.51C949.85 418.85 952.66 409.14 952.66 397.39V196.57Z" fill="white"/>
+        <path d="M1240.18 92.33C1243.24 92.33 1245.29 92.59 1246.31 93.1C1247.84 93.61 1249.12 94.38 1250.14 95.4C1251.67 98.47 1252.44 100.25 1252.44 100.77V103.07L1181.93 601.28C1180.91 606.39 1176.82 608.94 1169.67 608.94H1125.21C1118.06 608.94 1113.97 606.38 1112.95 601.28L1041.67 103.07V101.54C1041.67 101.03 1042.69 98.98 1044.73 95.41C1046.78 93.37 1049.84 92.34 1053.93 92.34H1093.79C1100.94 92.34 1105.03 94.9 1106.06 100L1142.85 389.72V432.64H1152.05V389.72L1188.84 100C1189.86 94.89 1193.95 92.34 1201.1 92.34H1240.19L1240.18 92.33Z" fill="white"/>
+        <path d="M1463.9 143.69C1463.9 148.8 1462.63 152.38 1460.07 154.42C1457.51 155.95 1454.45 156.72 1450.87 156.72H1343.56V319.21H1418.67C1426.85 319.21 1430.93 321.76 1430.93 326.87V374.39C1430.93 379.5 1426.84 382.05 1418.67 382.05H1343.56V545.31H1450.87C1454.45 545.31 1457.51 546.08 1460.07 547.61C1462.63 549.14 1463.9 551.19 1463.9 553.74V600.49C1463.9 603.04 1462.63 605.09 1460.07 606.62C1457.51 608.15 1454.45 608.92 1450.87 608.92H1292.21C1284.03 608.92 1279.95 606.11 1279.95 600.49V100.76C1279.95 95.14 1284.04 92.33 1292.21 92.33H1450.87C1454.45 92.33 1457.51 93.35 1460.07 95.4C1462.63 96.93 1463.9 99.74 1463.9 103.83V143.69Z" fill="white"/>
+        <path d="M1554.64 600.5C1554.64 606.12 1550.55 608.93 1542.38 608.93H1503.29C1495.12 608.93 1491.03 606.12 1491.03 600.5V100.76C1491.03 95.14 1495.12 92.33 1503.29 92.33H1606.77C1616.99 92.33 1626.44 94.37 1635.13 98.46C1643.82 102.55 1651.23 108.42 1657.36 116.09C1664.01 123.24 1669.11 131.67 1672.69 141.38C1676.78 151.09 1678.82 161.56 1678.82 172.81V273.98C1678.82 290.33 1675.75 303.11 1669.62 312.3C1664 321.5 1657.1 328.4 1648.92 332.99C1641.25 337.08 1633.33 339.63 1625.16 340.65C1617.49 341.67 1611.36 342.18 1606.76 342.18H1603.69V359.04H1605.99C1610.08 359.04 1615.96 359.55 1623.62 360.57C1631.8 361.59 1639.97 364.4 1648.15 369C1656.33 373.6 1663.48 380.49 1669.61 389.69C1675.74 398.89 1678.81 411.66 1678.81 428.02V600.48C1678.81 606.1 1674.72 608.91 1666.54 608.91H1627.45C1619.27 608.91 1615.18 606.1 1615.18 600.48V422.66C1615.18 411.42 1612.37 401.97 1606.75 394.3C1601.13 386.13 1594.48 382.04 1586.82 382.04H1554.63V600.49L1554.64 600.5ZM1554.64 319.21H1586.83C1594.49 319.21 1601.14 315.38 1606.76 307.71C1612.38 299.53 1615.19 289.83 1615.19 278.58V196.57C1615.19 185.33 1612.38 175.88 1606.76 168.21C1601.14 160.55 1594.49 156.71 1586.83 156.71H1554.64V319.2V319.21Z" fill="white"/>
+        <path d="M1842.06 231.83C1838.48 231.83 1835.41 231.06 1832.86 229.53C1830.82 227.49 1829.79 225.19 1829.79 222.63V196.57C1829.79 185.33 1826.98 175.88 1821.36 168.21C1815.74 160.55 1809.1 156.71 1801.43 156.71H1797.6C1789.93 156.71 1783.29 160.54 1777.67 168.21C1772.05 175.87 1769.24 185.33 1769.24 196.57V228C1769.24 233.62 1769.75 238.73 1770.77 243.33C1772.3 247.42 1774.09 251.25 1776.13 254.83C1793.5 281.91 1810.88 308.99 1828.25 336.07C1845.62 362.64 1862.99 389.72 1880.37 417.32C1889.06 431.63 1893.4 445.68 1893.4 459.48V526.16C1893.4 538.42 1891.35 549.66 1887.27 559.88C1883.18 570.1 1877.56 578.79 1870.41 585.94C1863.77 593.09 1855.85 598.72 1846.65 602.8C1837.96 606.89 1828.76 608.93 1819.06 608.93H1779.97C1768.73 608.93 1758.51 606.63 1749.31 602.03C1740.62 597.43 1732.96 591.3 1726.32 583.63C1719.68 575.97 1714.57 567.28 1710.99 557.57C1707.42 547.35 1705.63 536.87 1705.63 526.15V478.63C1705.63 476.08 1706.65 474.03 1708.69 472.5C1711.25 470.46 1714.31 469.43 1717.89 469.43H1756.98C1760.56 469.43 1763.37 470.45 1765.41 472.5C1767.97 474.03 1769.24 476.08 1769.24 478.63V504.69C1769.24 515.93 1772.05 525.64 1777.67 533.81C1783.29 541.47 1789.93 545.31 1797.6 545.31H1801.43C1809.1 545.31 1815.74 541.48 1821.36 533.81C1826.98 525.63 1829.79 515.93 1829.79 504.69V473.26C1829.79 462.02 1827.49 453.08 1822.89 446.44L1718.65 283.95C1709.96 269.64 1705.62 255.59 1705.62 241.79V175.11C1705.62 164.38 1707.41 154.16 1710.98 144.45C1714.56 134.23 1719.67 125.29 1726.31 117.62C1732.95 109.96 1740.62 103.82 1749.3 99.22C1758.5 94.62 1768.72 92.32 1779.96 92.32H1819.05C1840.51 92.32 1858.14 100.24 1871.93 116.08C1886.24 131.92 1893.39 151.59 1893.39 175.1V222.62C1893.39 225.18 1892.11 227.47 1889.56 229.52C1887.52 231.05 1884.7 231.82 1881.13 231.82H1842.04L1842.06 231.83Z" fill="white"/>
+        <path d="M2024.9 228.55C2024.9 167.5 2048.67 110.11 2091.84 66.95C2135.01 23.78 2192.41 0 2253.45 0C2305.79 0 2355.03 17.21 2395.84 49.79L2402.91 55.43L2409.99 49.79C2450.08 17.85 2500.65 0.26 2552.39 0.26C2613.6 0.26 2670.99 23.94 2714 66.95C2757.01 109.96 2780.69 167.35 2780.69 228.56C2780.69 289.77 2757.01 347.16 2714 390.16L2402.91 701.26L2091.82 390.16C2070.6 368.94 2053.96 343.97 2042.33 315.9C2030.76 287.93 2024.88 258.53 2024.88 228.54L2024.9 228.55ZM2073.95 302.99C2083.1 325.05 2096.16 345.04 2112.79 362.49V362.57L2116.11 365.91L2402.93 652.73L2689.75 365.9C2726.28 329.37 2746.39 280.61 2746.39 228.57C2746.39 176.53 2726.27 127.74 2689.75 91.21C2653.23 54.7 2604.45 34.58 2552.41 34.58C2510.15 34.58 2470.08 47.77 2436.5 72.72L2427.22 79.62L2434.3 88.77C2444.71 102.23 2453.62 116.84 2460.78 132.19L2466.89 145.31L2478.17 136.25C2498.99 119.52 2525.36 110.31 2552.44 110.31C2584.23 110.31 2613.98 122.55 2636.23 144.79C2658.46 167.01 2670.69 196.76 2670.69 228.56C2670.69 260.36 2658.45 290.11 2636.22 312.33L2402.96 545.59L2177.72 320.35L2177.9 320.17L2169.88 312.15C2147.56 289.83 2135.26 260.14 2135.26 228.55C2135.26 196.96 2147.56 167.29 2169.88 144.96C2192.21 122.63 2221.9 110.33 2253.48 110.33C2285.06 110.33 2314.75 122.63 2337.08 144.96C2359.4 167.29 2371.7 196.99 2371.7 228.55C2371.7 260.11 2359.4 289.82 2337.08 312.15C2320.22 329 2298.98 340.26 2275.67 344.69L2254.6 348.7L2317.9 412.01L2324.82 409.28C2358.34 396.07 2387.47 373.84 2409.07 344.99C2434.34 311.22 2447.69 270.96 2447.69 228.55C2447.69 176.67 2427.48 127.89 2390.8 91.21C2354.12 54.53 2305.35 34.33 2253.47 34.33C2201.59 34.33 2152.81 54.53 2116.13 91.21C2079.45 127.91 2059.24 176.69 2059.24 228.55C2059.24 254.32 2064.2 279.37 2073.97 302.99H2073.95ZM2436.31 365.47C2415.73 392.96 2388.76 415.81 2358.34 431.54L2344.55 438.67L2402.93 497.07L2611.93 288.05C2627.67 272.31 2636.34 251.18 2636.34 228.56C2636.34 205.94 2627.67 184.78 2611.92 169.03C2596.17 153.29 2575.03 144.62 2552.42 144.62C2531.43 144.62 2511.73 152.07 2496.42 165.71H2496.11L2477.75 184.05L2478.74 189.84C2480.91 202.58 2482.01 215.6 2482.01 228.54C2482.01 278.17 2466.21 325.52 2436.31 365.46V365.47ZM2253.46 312.46C2275.87 312.46 2296.94 303.73 2312.79 287.88C2328.64 272.03 2337.37 250.96 2337.37 228.55C2337.37 206.14 2328.65 185.08 2312.79 169.23C2296.94 153.38 2275.87 144.65 2253.46 144.65C2231.05 144.65 2209.96 153.38 2194.13 169.23C2178.28 185.08 2169.55 206.14 2169.55 228.55C2169.55 250.96 2178.28 272.03 2194.13 287.88C2209.98 303.73 2231.05 312.46 2253.46 312.46Z" fill="white"/>
+        <path d="M2253.46 204.3C2259.68 204.3 2265.88 206.66 2270.63 211.39C2280.08 220.85 2280.08 236.24 2270.63 245.69C2266.05 250.27 2259.95 252.8 2253.47 252.8C2246.99 252.8 2240.9 250.28 2236.33 245.7C2231.74 241.12 2229.21 235.02 2229.21 228.54C2229.21 222.06 2231.74 215.97 2236.33 211.38C2241.06 206.65 2247.27 204.29 2253.49 204.29H2253.47L2253.46 204.3Z" fill="white"/>
+      </svg>
+    </div>
+    <div class="tag">Aula #177 · Work-life Balance</div>
+    <h1>Matriz de Eisenhower na prática</h1>
+    <p class="lead">Liste as tarefas da sua rotina, classifique cada uma como urgente ou não, importante ou não, e veja em tempo real em qual quadrante ela cai. No final, baixe sua matriz em PDF.</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- STEP 1: ADD TASKS -->
+  <section class="card">
+    <div class="step-label">
+      <div class="step-number">1</div>
+      <h2>Liste suas tarefas</h2>
+    </div>
+    <p class="sub">Adicione, uma a uma, as tarefas que ocupam a sua rotina de trabalho hoje.</p>
+    <div class="add-row">
+      <input type="text" id="task-input" placeholder="Ex: Responder e-mails pendentes" maxlength="80">
+      <button id="add-btn">Adicionar</button>
+    </div>
+
+    <div id="pending-zone">
+      <p class="pending-empty" id="pending-empty-msg">Nenhuma tarefa aguardando classificação. Adicione a primeira acima.</p>
+    </div>
+  </section>
+
+  <!-- STEP 2: MATRIX -->
+  <section id="matrix-section">
+    <div class="step-label">
+      <div class="step-number">2</div>
+      <h2 style="font-size:1.1rem;">Veja sua matriz se montar</h2>
+    </div>
+    <p class="sub" style="margin-bottom:20px;">Classifique cada tarefa acima (urgente/não urgente e importante/não importante) e ela entra automaticamente no quadrante certo.</p>
+
+    <div id="matrix-export">
+      <div class="matrix-title">
+        <h2>A Matriz de Eisenhower</h2>
+        <span id="task-count">0 tarefas classificadas</span>
+      </div>
+
+      <div class="axis-wrap">
+        <div class="y-axis">
+          <span>Importante</span>
+          <span>Não importante</span>
+        </div>
+        <div class="matrix-col">
+          <div class="x-axis">
+            <span>Urgente</span>
+            <span>Não urgente</span>
+          </div>
+          <div class="grid">
+            <div class="quad" id="q-do">
+              <div class="quad-head"><span class="quad-dot"></span><h3>Fazer Agora</h3></div>
+              <p class="quad-sub">Urgente e Importante</p>
+              <ul class="quad-tasks" id="list-do"><li class="empty">Sem tarefas ainda</li></ul>
+            </div>
+            <div class="quad" id="q-schedule">
+              <div class="quad-head"><span class="quad-dot"></span><h3>Agendar e Proteger</h3></div>
+              <p class="quad-sub">Não Urgente e Importante</p>
+              <ul class="quad-tasks" id="list-schedule"><li class="empty">Sem tarefas ainda</li></ul>
+            </div>
+            <div class="quad" id="q-delegate">
+              <div class="quad-head"><span class="quad-dot"></span><h3>Delegar / Renegociar</h3></div>
+              <p class="quad-sub">Urgente e Não Importante</p>
+              <ul class="quad-tasks" id="list-delegate"><li class="empty">Sem tarefas ainda</li></ul>
+            </div>
+            <div class="quad" id="q-eliminate">
+              <div class="quad-head"><span class="quad-dot"></span><h3>Eliminar</h3></div>
+              <p class="quad-sub">Nem Urgente, Nem Importante</p>
+              <ul class="quad-tasks" id="list-eliminate"><li class="empty">Sem tarefas ainda</li></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="download-btn">⬇ Baixar minha matriz em PDF</button>
+      <button id="reset-btn">Recomeçar</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  PipeLovers · Aula #177 · Work-life Balance: técnicas para um equilíbrio saudável
+</footer>
+
+<script>
+  let pendingTasks = []; // {id, text, urgent: null|true|false, important: null|true|false}
+  let idCounter = 0;
+
+  const pendingZone = document.getElementById('pending-zone');
+  const pendingEmptyMsg = document.getElementById('pending-empty-msg');
+  const taskInput = document.getElementById('task-input');
+  const addBtn = document.getElementById('add-btn');
+  const taskCount = document.getElementById('task-count');
+
+  const lists = {
+    do: document.getElementById('list-do'),
+    schedule: document.getElementById('list-schedule'),
+    delegate: document.getElementById('list-delegate'),
+    eliminate: document.getElementById('list-eliminate')
+  };
+
+  function addTask(){
+    const text = taskInput.value.trim();
+    if(!text) return;
+    pendingTasks.push({ id: idCounter++, text, urgent: null, important: null });
+    taskInput.value = '';
+    renderPending();
+    taskInput.focus();
+  }
+
+  addBtn.addEventListener('click', addTask);
+  taskInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') addTask(); });
+
+  function renderPending(){
+    pendingZone.innerHTML = '';
+    if(pendingTasks.length === 0){
+      pendingZone.appendChild(pendingEmptyMsg);
+      return;
+    }
+    pendingTasks.forEach(task => {
+      const item = document.createElement('div');
+      item.className = 'pending-item';
+
+      const p = document.createElement('p');
+      p.textContent = task.text;
+      item.appendChild(p);
+
+      const row = document.createElement('div');
+      row.className = 'choice-row';
+
+      // Urgent group
+      const urgentGroup = document.createElement('div');
+      urgentGroup.className = 'choice-group';
+      const uYes = document.createElement('button');
+      uYes.className = 'choice-btn urgent-yes' + (task.urgent === true ? ' active' : '');
+      uYes.textContent = 'Urgente';
+      uYes.onclick = () => { task.urgent = true; renderPending(); renderMatrix(); };
+      const uNo = document.createElement('button');
+      uNo.className = 'choice-btn urgent-no' + (task.urgent === false ? ' active' : '');
+      uNo.textContent = 'Não urgente';
+      uNo.onclick = () => { task.urgent = false; renderPending(); renderMatrix(); };
+      urgentGroup.appendChild(uYes);
+      urgentGroup.appendChild(uNo);
+
+      // Important group
+      const impGroup = document.createElement('div');
+      impGroup.className = 'choice-group';
+      const iYes = document.createElement('button');
+      iYes.className = 'choice-btn imp-yes' + (task.important === true ? ' active' : '');
+      iYes.textContent = 'Importante';
+      iYes.onclick = () => { task.important = true; renderPending(); renderMatrix(); };
+      const iNo = document.createElement('button');
+      iNo.className = 'choice-btn imp-no' + (task.important === false ? ' active' : '');
+      iNo.textContent = 'Não importante';
+      iNo.onclick = () => { task.important = false; renderPending(); renderMatrix(); };
+      impGroup.appendChild(iYes);
+      impGroup.appendChild(iNo);
+
+      row.appendChild(urgentGroup);
+      row.appendChild(impGroup);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-pending';
+      removeBtn.textContent = 'remover';
+      removeBtn.onclick = () => {
+        pendingTasks = pendingTasks.filter(t => t.id !== task.id);
+        renderPending();
+        renderMatrix();
+      };
+      row.appendChild(removeBtn);
+
+      item.appendChild(row);
+      pendingZone.appendChild(item);
+    });
+  }
+
+  function renderMatrix(){
+    Object.values(lists).forEach(ul => ul.innerHTML = '');
+    const buckets = { do: [], schedule: [], delegate: [], eliminate: [] };
+
+    pendingTasks.forEach(task => {
+      if(task.urgent === null || task.important === null) return;
+      if(task.urgent && task.important) buckets.do.push(task);
+      else if(!task.urgent && task.important) buckets.schedule.push(task);
+      else if(task.urgent && !task.important) buckets.delegate.push(task);
+      else buckets.eliminate.push(task);
+    });
+
+    let total = 0;
+    Object.keys(buckets).forEach(key => {
+      const arr = buckets[key];
+      total += arr.length;
+      if(arr.length === 0){
+        const li = document.createElement('li');
+        li.className = 'empty';
+        li.textContent = 'Sem tarefas ainda';
+        lists[key].appendChild(li);
+      } else {
+        arr.forEach(task => {
+          const li = document.createElement('li');
+          li.className = 'task-chip';
+          const span = document.createElement('span');
+          span.textContent = task.text;
+          const btn = document.createElement('button');
+          btn.textContent = '✕';
+          btn.onclick = () => {
+            pendingTasks = pendingTasks.filter(t => t.id !== task.id);
+            renderPending();
+            renderMatrix();
+          };
+          li.appendChild(span);
+          li.appendChild(btn);
+          lists[key].appendChild(li);
+        });
+      }
+    });
+
+    taskCount.textContent = total + (total === 1 ? ' tarefa classificada' : ' tarefas classificadas');
+  }
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if(pendingTasks.length && !confirm('Isso vai apagar todas as tarefas adicionadas. Continuar?')) return;
+    pendingTasks = [];
+    idCounter = 0;
+    renderPending();
+    renderMatrix();
+  });
+
+  const downloadBtn = document.getElementById('download-btn');
+  downloadBtn.addEventListener('click', async () => {
+    downloadBtn.disabled = true;
+    const originalText = downloadBtn.textContent;
+    downloadBtn.textContent = 'Gerando PDF...';
+    try {
+      const target = document.getElementById('matrix-export');
+      const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth - 60;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const yOffset = Math.max(30, (pageHeight - imgHeight) / 2);
+      pdf.setFontSize(16);
+      pdf.setTextColor(11, 14, 69);
+      pdf.text('Minha Matriz de Eisenhower · PipeLovers', 30, 28);
+      pdf.addImage(imgData, 'PNG', 30, Math.max(yOffset, 40), imgWidth, imgHeight);
+      pdf.save('minha-matriz-eisenhower.pdf');
+    } catch (err) {
+      alert('Não foi possível gerar o PDF agora. Verifique sua conexão com a internet e tente novamente.');
+      console.error(err);
+    } finally {
+      downloadBtn.disabled = false;
+      downloadBtn.textContent = originalText;
+    }
+  });
+
+  renderPending();
+  renderMatrix();
+</script>
+
+</body>
+</html>
